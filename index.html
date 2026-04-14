@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Royal Puzzle Fix</title>
+    <script defer src="https://pl28980106.profitablecpmratenetwork.com/20/bd/f4/20bdf4fc49430a4adf6663e28963e137.js"></script>
+    <style>
+        :root { --wood: #8d6e63; --grid-bg: #3e2723; --accent: #feca57; --bg: #2d1b17; }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--bg); color: white; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* Ads: Fixed height for mobile compatibility */
+        .ad-zone { height: 55px; background: #000; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+        .ad-zone iframe { transform: scale(0.8); } /* Ad thori choti taake game ko jagah mile */
+
+        #main-content { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: space-evenly; /* Space barabar baante ga */
+            padding: 5px;
+        }
+
+        /* HUD: Smaller for mobile */
+        #hud { display: flex; gap: 8px; }
+        .stat-box { background: #000; border: 1px solid var(--accent); border-radius: 6px; padding: 2px 8px; text-align: center; }
+        .val { font-size: 0.9rem; font-weight: bold; color: var(--accent); }
+        .lbl { font-size: 7px; text-transform: uppercase; display: block; }
+
+        /* Grid: Responsive Size */
+        #grid { 
+            display: grid; 
+            grid-template-columns: repeat(8, 1fr); 
+            gap: 3px; 
+            background: var(--grid-bg); 
+            padding: 5px; 
+            border-radius: 8px;
+            width: 90vw; /* Screen width ke mutabiq */
+            max-width: 340px; 
+        }
+        .cell { aspect-ratio: 1/1; background: rgba(255,255,255,0.05); border-radius: 3px; }
+        .cell.filled { background: var(--wood); border: 1px solid #a1887f; }
+
+        /* Pieces Area: Height limited */
+        #pieces-area { display: flex; gap: 10px; height: 60px; align-items: center; justify-content: center; }
+        .piece-container { padding: 4px; background: rgba(255,255,255,0.02); border-radius: 5px; transform: scale(0.85); }
+        .piece-container.selected { border: 1.5px solid var(--accent); background: rgba(254, 202, 87, 0.1); }
+        .piece { display: grid; gap: 1px; }
+        .p-block { width: 12px; height: 12px; background: var(--wood); border-radius: 1px; }
+
+        #hint-btn { background: var(--accent); color: #000; border: none; padding: 8px 20px; border-radius: 20px; font-weight: bold; font-size: 12px; }
+        #hint-msg { height: 12px; color: var(--accent); font-size: 10px; font-weight: bold; }
+    </style>
+</head>
+<body onload="init()">
+
+    <div class="ad-zone">
+        <script type="text/javascript">
+            atOptions = { 'key' : 'e554307db5af71bb93a1bdbca30869f3', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} };
+        </script>
+        <script type="text/javascript" src="https://www.highperformanceformat.com/e554307db5af71bb93a1bdbca30869f3/invoke.js"></script>
+    </div>
+
+    <div id="main-content">
+        <div id="hud">
+            <div class="stat-box"><span class="lbl">Level</span><span id="ui-lvl" class="val">1</span></div>
+            <div class="stat-box"><span class="lbl">Score</span><span id="ui-score" class="val">0</span></div>
+            <div class="stat-box"><span class="lbl">Target</span><span id="ui-target" class="val">300</span></div>
+        </div>
+
+        <div id="hint-msg"></div>
+        <div id="grid"></div>
+        <div id="pieces-area"></div>
+
+        <button id="hint-btn" onclick="useHint()">✨ MAGIC HINT</button>
+    </div>
+
+    <div class="ad-zone">
+        <script type="text/javascript">
+            atOptions = { 'key' : 'e554307db5af71bb93a1bdbca30869f3', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} };
+        </script>
+        <script type="text/javascript" src="https://www.highperformanceformat.com/e554307db5af71bb93a1bdbca30869f3/invoke.js"></script>
+    </div>
+
+<script>
+    let board = Array(8).fill().map(() => Array(8).fill(0));
+    let selectedPiece = null;
+    let score = 0;
+    let currentLvl = parseInt(localStorage.getItem('royal_lvl')) || 1;
+    let target = 300 + (currentLvl - 1) * 200;
+    const shapes = [[[1,1],[1,1]], [[1,1,1]], [[1,1,1,1]], [[1,1],[1,0]], [[1]], [[1,1,1],[0,1,0]]];
+
+    function init() {
+        document.getElementById('ui-lvl').innerText = currentLvl;
+        document.getElementById('ui-target').innerText = target;
+        const grid = document.getElementById('grid');
+        for(let r=0; r<8; r++) {
+            for(let c=0; c<8; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.id = `r${r}c${c}`;
+                cell.onclick = () => handleMove(r, c);
+                grid.appendChild(cell);
+            }
+        }
+        spawn();
+    }
+
+    function spawn() {
+        const area = document.getElementById('pieces-area');
+        area.innerHTML = '';
+        for(let i=0; i<3; i++) {
+            const data = shapes[Math.floor(Math.random()*shapes.length)];
+            const container = document.createElement('div');
+            container.className = 'piece-container';
+            container.onclick = (e) => {
+                document.querySelectorAll('.piece-container').forEach(p => p.classList.remove('selected'));
+                container.classList.add('selected');
+                selectedPiece = { data, el: container };
+                e.stopPropagation();
+            };
+            const p = document.createElement('div');
+            p.className = 'piece';
+            p.style.gridTemplateColumns = `repeat(${data[0].length}, 1fr)`;
+            data.forEach(row => row.forEach(v => {
+                const b = document.createElement('div');
+                if(v) b.className = 'p-block';
+                else b.style.visibility = 'hidden';
+                p.appendChild(b);
+            }));
+            container.appendChild(p);
+            area.appendChild(container);
+        }
+    }
+
+    function handleMove(r, c) {
+        if(!selectedPiece) return;
+        const s = selectedPiece.data;
+        for(let i=0; i<s.length; i++) for(let j=0; j<s[i].length; j++)
+            if(s[i][j] && (r+i >= 8 || c+j >= 8 || board[r+i][c+j])) return;
+
+        for(let i=0; i<s.length; i++) for(let j=0; j<s[i].length; j++) if(s[i][j]) {
+            board[r+i][c+j] = 1;
+            document.getElementById(`r${r+i}c${c+j}`).classList.add('filled');
+        }
+        selectedPiece.el.remove();
+        selectedPiece = null;
+        if(!document.getElementById('pieces-area').children.length) spawn();
+    }
+
+    function useHint() {
+        window.open("https://www.profitablecpmratenetwork.com/bm6t0hv6n?key=aa011a75a61b6cd284d3a64a702daf09", "_blank", "width=300,height=400");
+    }
+</script>
+</body>
+</html>
