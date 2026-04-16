@@ -3,110 +3,178 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Royal Puzzle Fix</title>
-    <script defer src="https://pl28980106.profitablecpmratenetwork.com/20/bd/f4/20bdf4fc49430a4adf6663e28963e137.js"></script>
+    <title>Royal Block Puzzle</title>
+    
+    <script src="https://pl28980106.profitablecpmratenetwork.com/20/bd/f4/20bdf4fc49430a4adf6663e28963e137.js"></script>
+
     <style>
         :root { --wood: #8d6e63; --grid-bg: #3e2723; --accent: #feca57; --bg: #2d1b17; }
+        html, body { height: 100%; margin: 0; padding: 0; background: var(--bg); color: white; font-family: sans-serif; overflow: hidden; touch-action: manipulation; }
         
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: var(--bg); color: white; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .screen { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; background: var(--bg); z-index: 20; }
+        .active { display: flex !important; }
+
+        #intro-screen { background: radial-gradient(circle, #4e342e, #1a1a1a); z-index: 1000; }
+        .logo-anim { font-size: 3rem; font-weight: bold; color: var(--accent); animation: pulse 1.5s infinite; text-align: center; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+        .level-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 20px; }
+        .lvl-node { width: 55px; height: 55px; background: #000; border: 2px solid #444; display: flex; align-items: center; justify-content: center; border-radius: 10px; cursor: pointer; }
+        .lvl-unlocked { border-color: var(--accent); color: var(--accent); font-weight: bold; }
+
+        #game-wrapper { display: flex; flex-direction: column; height: 100vh; width: 100%; max-width: 450px; margin: 0 auto; overflow: hidden; }
+        .ad-zone { width: 100%; min-height: 50px; display: flex; align-items: center; justify-content: center; background: #000; flex-shrink: 0; overflow: hidden; }
         
-        /* Ads: Fixed height for mobile compatibility */
-        .ad-zone { height: 55px; background: #000; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
-        .ad-zone iframe { transform: scale(0.8); } /* Ad thori choti taake game ko jagah mile */
+        #main-content { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5px; position: relative; }
+        #hud { display: flex; gap: 10px; margin-bottom: 5px; }
+        .stat-box { background: #000; border: 1.5px solid var(--accent); border-radius: 8px; padding: 4px 10px; text-align: center; min-width: 60px; }
+        .val { font-size: 1rem; font-weight: bold; color: var(--accent); display: block; }
 
-        #main-content { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: space-evenly; /* Space barabar baante ga */
-            padding: 5px;
-        }
-
-        /* HUD: Smaller for mobile */
-        #hud { display: flex; gap: 8px; }
-        .stat-box { background: #000; border: 1px solid var(--accent); border-radius: 6px; padding: 2px 8px; text-align: center; }
-        .val { font-size: 0.9rem; font-weight: bold; color: var(--accent); }
-        .lbl { font-size: 7px; text-transform: uppercase; display: block; }
-
-        /* Grid: Responsive Size */
-        #grid { 
-            display: grid; 
-            grid-template-columns: repeat(8, 1fr); 
-            gap: 3px; 
-            background: var(--grid-bg); 
-            padding: 5px; 
-            border-radius: 8px;
-            width: 90vw; /* Screen width ke mutabiq */
-            max-width: 340px; 
-        }
-        .cell { aspect-ratio: 1/1; background: rgba(255,255,255,0.05); border-radius: 3px; }
+        #grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; background: var(--grid-bg); padding: 6px; border-radius: 8px; }
+        .cell { width: 38px; height: 38px; background: rgba(255,255,255,0.05); border-radius: 4px; }
         .cell.filled { background: var(--wood); border: 1px solid #a1887f; }
 
-        /* Pieces Area: Height limited */
-        #pieces-area { display: flex; gap: 10px; height: 60px; align-items: center; justify-content: center; }
-        .piece-container { padding: 4px; background: rgba(255,255,255,0.02); border-radius: 5px; transform: scale(0.85); }
-        .piece-container.selected { border: 1.5px solid var(--accent); background: rgba(254, 202, 87, 0.1); }
-        .piece { display: grid; gap: 1px; }
-        .p-block { width: 12px; height: 12px; background: var(--wood); border-radius: 1px; }
+        #pieces-area { margin-top: 15px; display: flex; gap: 8px; height: 70px; align-items: center; }
+        .piece-container { padding: 5px; border: 2px solid transparent; border-radius: 8px; background: rgba(255,255,255,0.03); cursor: pointer; }
+        .piece-container.selected { border-color: var(--accent); background: rgba(254, 202, 87, 0.2); }
+        .piece { display: grid; gap: 2px; }
+        .p-block { width: 14px; height: 14px; background: var(--wood); border-radius: 2px; }
 
-        #hint-btn { background: var(--accent); color: #000; border: none; padding: 8px 20px; border-radius: 20px; font-weight: bold; font-size: 12px; }
-        #hint-msg { height: 12px; color: var(--accent); font-size: 10px; font-weight: bold; }
+        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+        .btn { background: var(--accent); color: #000; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; min-width: 130px; text-align: center; }
+        .btn:disabled { background: #555 !important; opacity: 0.6; }
+        
+        .big-ad-box { margin: 15px 0; border: 1px solid #333; }
+        .hidden-btn { display: none; }
     </style>
 </head>
-<body onload="init()">
+<body onload="initApp()">
 
-    <div class="ad-zone">
-        <script type="text/javascript">
-            atOptions = { 'key' : 'e554307db5af71bb93a1bdbca30869f3', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} };
-        </script>
-        <script type="text/javascript" src="https://www.highperformanceformat.com/e554307db5af71bb93a1bdbca30869f3/invoke.js"></script>
-    </div>
-
-    <div id="main-content">
-        <div id="hud">
-            <div class="stat-box"><span class="lbl">Level</span><span id="ui-lvl" class="val">1</span></div>
-            <div class="stat-box"><span class="lbl">Score</span><span id="ui-score" class="val">0</span></div>
-            <div class="stat-box"><span class="lbl">Target</span><span id="ui-target" class="val">300</span></div>
+    <div id="intro-screen" class="screen active">
+        <div class="logo-anim">ROYAL BLOCKS</div>
+        <div style="margin-top:30px;">
+            <script>
+                atOptions = { 'key' : '69a03ea2751507f1217b12588de19019', 'format' : 'iframe', 'height' : 250, 'width' : 300, 'params' : {} };
+            </script>
+            <script src="https://www.highperformanceformat.com/69a03ea2751507f1217b12588de19019/invoke.js"></script>
         </div>
-
-        <div id="hint-msg"></div>
-        <div id="grid"></div>
-        <div id="pieces-area"></div>
-
-        <button id="hint-btn" onclick="useHint()">✨ MAGIC HINT</button>
     </div>
 
-    <div class="ad-zone">
-        <script type="text/javascript">
-            atOptions = { 'key' : 'e554307db5af71bb93a1bdbca30869f3', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} };
-        </script>
-        <script type="text/javascript" src="https://www.highperformanceformat.com/e554307db5af71bb93a1bdbca30869f3/invoke.js"></script>
+    <div id="start-screen" class="screen">
+        <h1 style="color:var(--accent)">PUZZLE KING</h1>
+        <div class="big-ad-box">
+            <script>
+                atOptions = { 'key' : '69a03ea2751507f1217b12588de19019', 'format' : 'iframe', 'height' : 250, 'width' : 300, 'params' : {} };
+            </script>
+            <script src="https://www.highperformanceformat.com/69a03ea2751507f1217b12588de19019/invoke.js"></script>
+        </div>
+        <button class="btn" onclick="showScreen('level-screen')">START GAME</button>
+    </div>
+
+    <div id="level-screen" class="screen">
+        <h3>CHOOSE LEVEL</h3>
+        <div class="level-grid" id="level-list"></div>
+        <div class="ad-zone" style="background:transparent; margin:10px 0;">
+            <script>
+                atOptions = { 'key' : 'ba4d673a74e1bec3358fc1f6be3542c3', 'format' : 'iframe', 'height' : 60, 'width' : 468, 'params' : {} };
+            </script>
+            <script src="https://www.highperformanceformat.com/ba4d673a74e1bec3358fc1f6be3542c3/invoke.js"></script>
+        </div>
+        <button class="btn" style="min-width: 80px;" onclick="showScreen('start-screen')">BACK</button>
+    </div>
+
+    <div id="game-screen" class="screen">
+        <div id="game-wrapper">
+            <div class="ad-zone">
+                <script>
+                    atOptions = { 'key' : 'e554307db5af71bb93a1bdbca30869f3', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} };
+                </script>
+                <script src="https://www.highperformanceformat.com/e554307db5af71bb93a1bdbca30869f3/invoke.js"></script>
+            </div>
+
+            <div id="main-content">
+                <div id="hud">
+                    <div class="stat-box"><small>LVL</small><span id="ui-lvl" class="val">1</span></div>
+                    <div class="stat-box"><small>SCORE</small><span id="ui-score" class="val">0</span></div>
+                    <div class="stat-box"><small>GOAL</small><span id="ui-target" class="val">300</span></div>
+                </div>
+
+                <div style="width:100%; max-width:320px; margin-bottom:5px;">
+                    <script async="async" data-cfasync="false" src="https://pl28980107.profitablecpmratenetwork.com/bf6e696d81bb9d0cc3f9613ee1f4d10f/invoke.js"></script>
+                    <div id="container-bf6e696d81bb9d0cc3f9613ee1f4d10f"></div>
+                </div>
+
+                <div id="hint-msg" style="height:15px; color:var(--accent); font-size:11px;"></div>
+                <div id="grid"></div>
+                <div id="pieces-area"></div>
+                
+                <div class="btn-group">
+                    <button class="btn" style="background:#4a69bd; color:white;" onclick="rotatePiece()">🔄 ROTATE</button>
+                    <button id="hint-btn" class="btn" onclick="useMagicHint()" disabled>✨ MAGIC HINT</button>
+                </div>
+                <div id="cooldown-txt" style="font-size:10px; color:#ff7675; margin-top:5px; height: 12px;"></div>
+            </div>
+
+            <div class="ad-zone">
+                <script>
+                    atOptions = { 'key' : 'ba4d673a74e1bec3358fc1f6be3542c3', 'format' : 'iframe', 'height' : 60, 'width' : 468, 'params' : {} };
+                </script>
+                <script src="https://www.highperformanceformat.com/ba4d673a74e1bec3358fc1f6be3542c3/invoke.js"></script>
+            </div>
+        </div>
     </div>
 
 <script>
+    const directLinks = [
+        "https://www.profitablecpmratenetwork.com/bm6t0hv6n?key=aa011a75a61b6cd284d3a64a702daf09",
+        "https://www.profitablecpmratenetwork.com/kcyc4amqi?key=24503b450eb58c41a82c4231af9397cd",
+        "https://www.profitablecpmratenetwork.com/qecjct8m22?key=cef678279c117147566d216538aa0f75"
+    ];
+
+    let unlocked = parseInt(localStorage.getItem('royal_unlocked')) || 1;
     let board = Array(8).fill().map(() => Array(8).fill(0));
-    let selectedPiece = null;
-    let score = 0;
-    let currentLvl = parseInt(localStorage.getItem('royal_lvl')) || 1;
-    let target = 300 + (currentLvl - 1) * 200;
+    let score = 0, moves = 0, currentLvl = 1, target = 300;
+    let selectedPiece = null, isHintMode = false, cooldown = false;
     const shapes = [[[1,1],[1,1]], [[1,1,1]], [[1,1,1,1]], [[1,1],[1,0]], [[1]], [[1,1,1],[0,1,0]]];
 
-    function init() {
-        document.getElementById('ui-lvl').innerText = currentLvl;
+    function initApp() { setTimeout(() => showScreen('start-screen'), 3000); }
+
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        const el = document.getElementById(id);
+        if(el) el.classList.add('active');
+        if(id === 'level-screen') renderLevels();
+    }
+
+    function renderLevels() {
+        const list = document.getElementById('level-list');
+        list.innerHTML = '';
+        for(let i=1; i<=20; i++) {
+            const div = document.createElement('div');
+            div.className = `lvl-node ${i <= unlocked ? 'lvl-unlocked' : ''}`;
+            div.innerText = i;
+            if(i <= unlocked) div.onclick = () => startLevel(i);
+            list.appendChild(div);
+        }
+    }
+
+    function startLevel(lvl) {
+        currentLvl = lvl; target = 300 + (lvl - 1) * 200; score = 0; moves = 0;
+        document.getElementById('ui-lvl').innerText = lvl;
         document.getElementById('ui-target').innerText = target;
-        const grid = document.getElementById('grid');
+        document.getElementById('ui-score').innerText = "0";
+        board = Array(8).fill().map(() => Array(8).fill(0));
+        const gridEl = document.getElementById('grid');
+        gridEl.innerHTML = '';
         for(let r=0; r<8; r++) {
             for(let c=0; c<8; c++) {
                 const cell = document.createElement('div');
-                cell.className = 'cell';
-                cell.id = `r${r}c${c}`;
+                cell.className = 'cell'; cell.id = `r${r}c${c}`;
                 cell.onclick = () => handleMove(r, c);
-                grid.appendChild(cell);
+                gridEl.appendChild(cell);
             }
         }
-        spawn();
+        spawn(); showScreen('game-screen');
     }
 
     function spawn() {
@@ -127,32 +195,95 @@
             p.style.gridTemplateColumns = `repeat(${data[0].length}, 1fr)`;
             data.forEach(row => row.forEach(v => {
                 const b = document.createElement('div');
-                if(v) b.className = 'p-block';
-                else b.style.visibility = 'hidden';
+                if(v) b.className = 'p-block'; else b.style.visibility = 'hidden';
                 p.appendChild(b);
             }));
-            container.appendChild(p);
-            area.appendChild(container);
+            container.appendChild(p); area.appendChild(container);
         }
     }
 
+    function rotatePiece() {
+        if(!selectedPiece) return;
+        const matrix = selectedPiece.data;
+        const rotated = matrix[0].map((val, index) => matrix.map(row => row[index]).reverse());
+        selectedPiece.data = rotated;
+        const p = selectedPiece.el.querySelector('.piece');
+        p.innerHTML = '';
+        p.style.gridTemplateColumns = `repeat(${rotated[0].length}, 1fr)`;
+        rotated.forEach(row => row.forEach(v => {
+            const b = document.createElement('div');
+            if(v) b.className = 'p-block'; else b.style.visibility = 'hidden';
+            p.appendChild(b);
+        }));
+    }
+
     function handleMove(r, c) {
+        if(isHintMode) {
+            if(board[r][c]) {
+                board[r][c] = 0;
+                document.getElementById(`r${r}c${c}`).classList.remove('filled');
+                isHintMode = false;
+                document.getElementById('hint-msg').innerText = "";
+                document.getElementById('hint-btn').classList.remove('hidden-btn');
+            }
+            return;
+        }
         if(!selectedPiece) return;
         const s = selectedPiece.data;
         for(let i=0; i<s.length; i++) for(let j=0; j<s[i].length; j++)
             if(s[i][j] && (r+i >= 8 || c+j >= 8 || board[r+i][c+j])) return;
 
         for(let i=0; i<s.length; i++) for(let j=0; j<s[i].length; j++) if(s[i][j]) {
-            board[r+i][c+j] = 1;
-            document.getElementById(`r${r+i}c${c+j}`).classList.add('filled');
+            board[r+i][c+j] = 1; document.getElementById(`r${r+i}c${c+j}`).classList.add('filled');
         }
-        selectedPiece.el.remove();
-        selectedPiece = null;
+        selectedPiece.el.remove(); selectedPiece = null; moves++; checkBoard();
         if(!document.getElementById('pieces-area').children.length) spawn();
+        if(moves >= 1 && !cooldown) document.getElementById('hint-btn').disabled = false;
     }
 
-    function useHint() {
-        window.open("https://www.profitablecpmratenetwork.com/bm6t0hv6n?key=aa011a75a61b6cd284d3a64a702daf09", "_blank", "width=300,height=400");
+    function checkBoard() {
+        let rC = [], cC = [];
+        for(let r=0; r<8; r++) if(board[r].every(v => v === 1)) rC.push(r);
+        for(let c=0; c<8; c++) {
+            let f = true;
+            for(let r=0; r<8; r++) if(!board[r][c]) f = false;
+            if(f) cC.push(c);
+        }
+        rC.forEach(r => { for(let c=0; c<8; c++) { board[r][c]=0; document.getElementById(`r${r}c${c}`).classList.remove('filled'); } score+=50; });
+        cC.forEach(c => { for(let r=0; r<8; r++) { board[r][c]=0; document.getElementById(`r${r}c${c}`).classList.remove('filled'); } score+=50; });
+        document.getElementById('ui-score').innerText = score;
+        if(score >= target) {
+            alert("LEVEL COMPLETE!");
+            if(currentLvl == unlocked) { unlocked++; localStorage.setItem('royal_unlocked', unlocked); }
+            showScreen('level-screen');
+        }
+    }
+
+    function useMagicHint() {
+        const link = directLinks[Math.floor(Math.random() * directLinks.length)];
+        window.open(link, "_blank");
+        isHintMode = true;
+        document.getElementById('hint-msg').innerText = "TAP A BLOCK TO REMOVE";
+        document.getElementById('hint-btn').classList.add('hidden-btn');
+        startCooldown(15);
+    }
+
+    function startCooldown(s) {
+        cooldown = true;
+        document.getElementById('hint-btn').disabled = true;
+        let t = s;
+        const intr = setInterval(() => {
+            t--;
+            document.getElementById('cooldown-txt').innerText = `Next hint in ${t}s`;
+            if(t <= 0) {
+                clearInterval(intr); cooldown = false;
+                document.getElementById('cooldown-txt').innerText = "";
+                if(moves >= 1) {
+                    document.getElementById('hint-btn').disabled = false;
+                    document.getElementById('hint-btn').classList.remove('hidden-btn');
+                }
+            }
+        }, 1000);
     }
 </script>
 </body>
